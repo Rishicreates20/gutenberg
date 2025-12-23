@@ -34,13 +34,14 @@ import { useBlockLock } from '../block-lock';
 import useListViewImages from './use-list-view-images';
 import { store as blockEditorStore } from '../../store';
 import { unlock } from '../../lock-unlock';
+import { useBlockVisibility } from '../block-visibility';
 
 const { Badge } = unlock( componentsPrivateApis );
 
 function ListViewBlockSelectButton(
 	{
 		className,
-		block: { clientId },
+		block,
 		onClick,
 		onContextMenu,
 		onMouseDown,
@@ -55,36 +56,30 @@ function ListViewBlockSelectButton(
 	},
 	ref
 ) {
+	const { clientId } = block;
 	const blockInformation = useBlockDisplayInformation( clientId );
 	const blockTitle = useBlockDisplayTitle( {
 		clientId,
 		context: 'list-view',
 	} );
 	const { isLocked } = useBlockLock( clientId );
-	const { canToggleBlockVisibility, isBlockHidden, hasPatternName } =
-		useSelect(
-			( select ) => {
-				const { getBlockName, getBlockAttributes } =
-					select( blockEditorStore );
-				const { isBlockHidden: _isBlockHidden } = unlock(
-					select( blockEditorStore )
-				);
-				const blockAttributes = getBlockAttributes( clientId );
-				return {
-					canToggleBlockVisibility: hasBlockSupport(
-						getBlockName( clientId ),
-						'visibility',
-						true
-					),
-					isBlockHidden: _isBlockHidden( clientId ),
-					hasPatternName: !! blockAttributes?.metadata?.patternName,
-				};
-			},
-			[ clientId ]
-		);
+	const { hasPatternName } = useSelect(
+		( select ) => {
+			const { getBlockAttributes } = select( blockEditorStore );
+			const blockAttributes = getBlockAttributes( clientId );
+			return {
+				hasPatternName: !! blockAttributes?.metadata?.patternName,
+			};
+		},
+		[ clientId ]
+	);
+	const { isHiddenAnywhere } = useBlockVisibility( {
+		clientIds: [ clientId ],
+	} );
 	const shouldShowLockIcon = isLocked;
 	const shouldShowBlockVisibilityIcon =
-		canToggleBlockVisibility && isBlockHidden;
+		hasBlockSupport( block.name, 'visibility', true ) && isHiddenAnywhere;
+
 	const isSticky = blockInformation?.positionType === 'sticky';
 	const images = useListViewImages( { clientId, isExpanded } );
 

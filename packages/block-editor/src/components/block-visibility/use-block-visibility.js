@@ -9,33 +9,34 @@ import { useMemo } from '@wordpress/element';
  * Internal dependencies
  */
 import { store as blockEditorStore } from '../../store';
+import { isAnyBlockHidden } from './utils';
 import { deviceTypeKey } from '../../store/private-keys';
 import { BLOCK_VISIBILITY_VIEWPORTS } from './constants';
 
-/**
- * Determines if a block should be hidden based on visibility settings.
- *
- * Priority:
- * 1. Device type override (Mobile/Tablet) - uses device type to determine viewport
- * 2. Actual window size (Desktop mode) - uses viewport detection
- *
- * @param {string} clientId Block client ID.
- * @return {Object} Object with `isBlockCurrentlyHidden` boolean property.
- */
-export function useBlockVisibility( clientId ) {
-	// Get visibility settings from block attributes and device type from settings
-	const { blockVisibility, deviceType } = useSelect(
+const EMPTY_ARRAY = [];
+
+export default function useBlockVisibility( { clientIds } ) {
+	const hasClientIds = clientIds?.length > 0;
+
+	const { blocks, deviceType } = useSelect(
 		( select ) => {
-			const block = select( blockEditorStore ).getBlock( clientId );
-			const metadata = block?.attributes?.metadata;
-			const settings = select( blockEditorStore ).getSettings();
+			if ( ! hasClientIds ) {
+				return {
+					blocks: EMPTY_ARRAY,
+				};
+			}
+
+			const { getBlocksByClientId, getSettings } =
+				select( blockEditorStore );
+
 			return {
-				blockVisibility: metadata?.blockVisibility,
+				blocks: getBlocksByClientId( clientIds ) || EMPTY_ARRAY,
 				deviceType:
-					settings?.[ deviceTypeKey ]?.toLowerCase() || 'desktop',
+					getSettings()?.[ deviceTypeKey ]?.toLowerCase() ||
+					'desktop',
 			};
 		},
-		[ clientId ]
+		[ clientIds, hasClientIds ]
 	);
 
 	// When Desktop is selected, use actual viewport detection
@@ -65,26 +66,49 @@ export function useBlockVisibility( clientId ) {
 		return BLOCK_VISIBILITY_VIEWPORTS.desktop.value;
 	}, [ deviceType, isLargerThanMobile, isLargerThanTablet ] );
 
-	// Determine if block is currently hidden.
-	const isBlockCurrentlyHidden = useMemo( () => {
+	// Determine if all blocks are hidden.
+	const areBlocksCurrentlyHidden = useMemo( () => {
 		// Hidden everywhere takes precedence.
-		if ( blockVisibility === false ) {
+		const hiddenBlocksLength = blocks.filter(
+			( block ) =>
+				block && block.attributes?.metadata?.blockVisibility === false
+		).length;
+		if ( hiddenBlocksLength > 0 && hiddenBlocksLength === blocks.length ) {
 			return true;
 		}
-
-		// Check if hidden on current viewport (false means hidden). Only apply when the experimental flag is enabled.
-		if (
-			window.__experimentalHideBlocksBasedOnScreenSize &&
-			blockVisibility?.[ currentViewport ] === false
-		) {
-			return true;
+		if ( window.__experimentalHideBlocksBasedOnScreenSize ) {
+			const hiddenBlocksOnCurrentViewportLength = blocks.filter(
+				( block ) =>
+					block.attributes?.metadata?.blockVisibility?.[
+						currentViewport
+					] === false
+			).length;
+			if (
+				hiddenBlocksOnCurrentViewportLength > 0 &&
+				hiddenBlocksOnCurrentViewportLength === blocks.length
+			) {
+				return true;
+			}
 		}
-
 		return false;
-	}, [ blockVisibility, currentViewport ] );
+	}, [ blocks, currentViewport ] );
 
-	return useMemo(
-		() => ( { isBlockCurrentlyHidden, currentViewport } ),
-		[ isBlockCurrentlyHidden, currentViewport ]
+	/**
+	 * Checks if any block is hidden either everywhere or according to viewport visibility settings.
+	 * This is used to determine if the block visibility button should be shown in the toolbar.
+	 * TODO: This is temporary to show icon states and what not. Later the UI will
+	 * want to know where exactly the block is hidden, e.g., to display icons or other things.
+	 *
+	 * @return {boolean} `true` if at least one block meets the visibility criteria, `false` otherwise.
+	 */
+	const isHiddenAnywhere = useMemo(
+		() => ( hasClientIds ? isAnyBlockHidden( blocks ) : false ),
+		[ blocks, hasClientIds ]
 	);
+
+	return {
+		blocks,
+		isHiddenAnywhere,
+		areBlocksCurrentlyHidden,
+	};
 }
