@@ -74,7 +74,7 @@ export default defineConfig( {
 			filename: 'js/design-tokens.js',
 		} ),
 		pluginDsTokenDocs( {
-			filename: '../../docs/ds-tokens.md',
+			filename: '../../docs/tokens.md',
 		} ),
 		typescriptTypes( {
 			filename: 'ts/token-types.ts',
