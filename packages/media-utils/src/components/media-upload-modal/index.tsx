@@ -168,6 +168,7 @@ export function MediaUploadModal( {
 		page: 1,
 		perPage: 20,
 		filters: [],
+		infiniteScrollEnabled: true,
 	} ) );
 
 	// Build query args based on view properties, similar to PostList
@@ -215,10 +216,12 @@ export function MediaUploadModal( {
 	// Fetch all media attachments using WordPress core data with permissions
 	const {
 		records: mediaRecords,
-		isResolving: isLoading,
-		totalItems,
-		totalPages,
+		isResolving: isLoadingRecords,
+		totalItems: totalItemsRaw,
+		totalPages: totalPagesRaw,
 	} = useEntityRecordsWithPermissions( 'postType', 'attachment', queryArgs );
+
+	const isLoading = isLoadingRecords;
 
 	const fields: Field< RestAttachment >[] = useMemo(
 		() => [
@@ -312,10 +315,10 @@ export function MediaUploadModal( {
 
 	const paginationInfo = useMemo(
 		() => ( {
-			totalItems,
-			totalPages,
+			totalItems: totalItemsRaw || 0,
+			totalPages: totalPagesRaw || 0,
 		} ),
-		[ totalItems, totalPages ]
+		[ totalItemsRaw, totalPagesRaw ]
 	);
 
 	const defaultLayouts = useMemo(
@@ -397,7 +400,11 @@ export function MediaUploadModal( {
 				label={ __( 'Drop files to upload' ) }
 			/>
 			<DataViewsPicker
-				data={ mediaRecords || [] }
+				data={
+					( mediaRecords || [] ) as ( RestAttachment & {
+						id: number;
+					} )[]
+				}
 				fields={ fields }
 				view={ view }
 				onChangeView={ setView }
