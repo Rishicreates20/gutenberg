@@ -1,13 +1,47 @@
 /**
  * WordPress dependencies
  */
-import { __experimentalVStack as VStack } from '@wordpress/components';
+import {
+	BaseControl,
+	VisuallyHidden,
+	__experimentalVStack as VStack,
+} from '@wordpress/components';
 import { useCallback } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import type { DataFormControlProps, DeepPartial } from '../../types';
+
+function PropertiesToFields< Item >( {
+	data,
+	field,
+	onChange,
+	hideLabelFromVision,
+	validity,
+}: DataFormControlProps< Item > ) {
+	const { properties } = field;
+	return (
+		<VStack spacing={ 4 }>
+			{ Object.entries( properties ).map( ( [ propKey, propField ] ) => {
+				if ( ! propField.Edit ) {
+					return null;
+				}
+
+				return (
+					<propField.Edit
+						key={ propKey }
+						data={ data }
+						field={ propField }
+						onChange={ onChange }
+						hideLabelFromVision={ hideLabelFromVision }
+						validity={ validity }
+					/>
+				);
+			} ) }
+		</VStack>
+	);
+}
 
 /**
  * Object field control.
@@ -44,26 +78,26 @@ export default function ObjectControl< Item >( {
 		return null;
 	}
 
-	return (
-		<VStack spacing={ 4 }>
-			{ Object.entries( properties ).map( ( [ propKey, propField ] ) => {
-				if ( ! propField.Edit ) {
-					return null;
-				}
-
-				// TODO: validity
-				const propValidity = validity?.children?.[ propKey ];
-				return (
-					<propField.Edit
-						key={ propKey }
-						data={ currentValue }
-						field={ propField }
-						onChange={ handlePropertyChange }
-						hideLabelFromVision={ hideLabelFromVision }
-						validity={ propValidity }
-					/>
-				);
-			} ) }
-		</VStack>
+	return hideLabelFromVision ? (
+		<PropertiesToFields
+			data={ currentValue }
+			field={ field }
+			onChange={ handlePropertyChange }
+			hideLabelFromVision={ hideLabelFromVision }
+			validity={ validity }
+		/>
+	) : (
+		<fieldset className="dataviews-controls__object">
+			<BaseControl.VisualLabel as="legend">
+				{ field.label }
+			</BaseControl.VisualLabel>
+			<PropertiesToFields
+				data={ currentValue }
+				field={ field }
+				onChange={ handlePropertyChange }
+				hideLabelFromVision={ hideLabelFromVision }
+				validity={ validity }
+			/>
+		</fieldset>
 	);
 }
