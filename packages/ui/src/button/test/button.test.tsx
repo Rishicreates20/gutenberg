@@ -77,14 +77,14 @@ describe( 'Button', () => {
 		expect( button ).not.toHaveAttribute( 'aria-disabled', 'true' );
 	} );
 
-	it( 'supports custom render prop while retaining the default accessible when disabled behavior', () => {
+	it( 'supports custom render prop while retaining the default focusable when disabled behavior', () => {
 		render(
 			// eslint-disable-next-line jsx-a11y/anchor-has-content, no-restricted-syntax
-			<Button render={ <a href="/" /> } disabled>
+			<Button render={ <a href="/" /> } nativeButton={ false } disabled>
 				Click me
 			</Button>
 		);
-		const button = screen.getByRole( 'link', { name: 'Click me' } );
+		const button = screen.getByRole( 'button', { name: 'Click me' } );
 
 		expect( button ).toHaveAttribute( 'aria-disabled', 'true' );
 	} );
@@ -96,7 +96,6 @@ describe( 'Button', () => {
 				Click me
 			</Button>
 		);
-
 		expect(
 			screen.getByRole( 'button', { name: 'Click me' } )
 		).toHaveClass( customClass );

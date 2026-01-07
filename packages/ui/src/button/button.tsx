@@ -1,9 +1,8 @@
 /**
  * External dependencies
  */
-// eslint-disable-next-line no-restricted-imports
-import { Button as AriakitButton } from '@ariakit/react';
 import { forwardRef, useEffect } from '@wordpress/element';
+import { Button as _Button } from '@base-ui/react/button';
 import clsx from 'clsx';
 
 /**
@@ -26,7 +25,7 @@ export const Button = forwardRef< HTMLButtonElement, ButtonProps >(
 			variant = 'solid',
 			size = 'default',
 			className,
-			accessibleWhenDisabled = true,
+			focusableWhenDisabled = true,
 			disabled,
 			loading,
 			loadingAnnouncement,
@@ -54,15 +53,15 @@ export const Button = forwardRef< HTMLButtonElement, ButtonProps >(
 		}, [ loading, loadingAnnouncement ] );
 
 		return (
-			<AriakitButton
+			<_Button
 				ref={ ref }
 				className={ mergedClassName }
-				accessibleWhenDisabled={ accessibleWhenDisabled }
+				focusableWhenDisabled={ focusableWhenDisabled }
 				disabled={ disabled ?? loading }
 				{ ...props }
 			>
 				{ children }
-			</AriakitButton>
+			</_Button>
 		);
 	}
 );
