@@ -5,6 +5,7 @@
 		"types": [ "node", "jest", "@testing-library/jest-dom" ]
 	},
 	"references": [
+		{ "path": "../a11y" },
 		{ "path": "../element" },
 		{ "path": "../i18n" },
 		{ "path": "../icons" },
