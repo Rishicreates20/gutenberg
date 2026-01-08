@@ -555,7 +555,8 @@ BlockListBlock = compose(
 // component, and useBlockProps.
 function BlockListBlockProvider( props ) {
 	const { clientId, rootClientId } = props;
-	const { isBlockCurrentlyHidden } = useBlockVisibility( clientId );
+	const { areBlocksCurrentlyHidden: isBlockCurrentlyHidden } =
+		useBlockVisibility( { clientIds: [ clientId ] } );
 	const selectedProps = useSelect(
 		( select ) => {
 			const {

@@ -29,7 +29,7 @@ jest.mock( '../../../store/private-keys', () => ( {
 /**
  * Internal dependencies
  */
-import { useBlockVisibility } from '../use-block-visibility';
+import useBlockVisibility from '../use-block-visibility';
 
 describe( 'useBlockVisibility', () => {
 	const clientId = 'test-client-id';
@@ -38,20 +38,29 @@ describe( 'useBlockVisibility', () => {
 	const setupMocks = ( {
 		blockVisibility = true,
 		deviceType = 'Desktop',
+		blocks = null,
 	} = {} ) => {
 		useSelect.mockImplementation( ( callback ) =>
-			callback( () => ( {
-				getBlock: () => ( {
-					attributes: {
-						metadata: {
-							blockVisibility,
-						},
-					},
-				} ),
-				getSettings: () => ( {
-					__experimentalDeviceType: deviceType,
-				} ),
-			} ) )
+			callback( () => {
+				const mockBlocks =
+					blocks !== null
+						? blocks
+						: [
+								{
+									attributes: {
+										metadata: {
+											blockVisibility,
+										},
+									},
+								},
+						  ];
+				return {
+					getBlocksByClientId: () => mockBlocks,
+					getSettings: () => ( {
+						__experimentalDeviceType: deviceType,
+					} ),
+				};
+			} )
 		);
 	};
 
@@ -91,10 +100,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should return false when deviceType is Mobile and block is visible on mobile', () => {
@@ -109,10 +118,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: false } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return true when deviceType is Tablet and block is hidden on tablet', () => {
@@ -123,10 +132,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: false } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should use actual viewport detection when deviceType is Desktop', () => {
@@ -140,10 +149,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 	} );
 
@@ -159,10 +168,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should return false when on mobile viewport and block is visible on mobile', () => {
@@ -180,10 +189,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return true when on tablet viewport and block is hidden on tablet', () => {
@@ -197,10 +206,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should return false when on tablet viewport and block is visible on tablet', () => {
@@ -218,10 +227,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return true when on desktop viewport and block is hidden on desktop', () => {
@@ -235,10 +244,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should return false when on desktop viewport and block is visible on desktop', () => {
@@ -256,10 +265,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 	} );
 
@@ -272,10 +281,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 
 		it( 'should return false when blockVisibility is true and no viewport restrictions', () => {
@@ -286,10 +295,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return false when blockVisibility is undefined', () => {
@@ -300,10 +309,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return true when blockVisibility is false regardless of viewport settings', () => {
@@ -314,10 +323,10 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 	} );
 
@@ -330,62 +339,69 @@ describe( 'useBlockVisibility', () => {
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return false when metadata is missing', () => {
-			useSelect.mockImplementation( ( callback ) =>
-				callback( () => ( {
-					getBlock: () => ( {
+			setupMocks( {
+				blocks: [
+					{
 						attributes: {},
-					} ),
-					getSettings: () => ( {
-						__experimentalDeviceType: 'Desktop',
-					} ),
-				} ) )
-			);
+					},
+				],
+			} );
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should return false when block is missing', () => {
-			useSelect.mockImplementation( ( callback ) =>
-				callback( () => ( {
-					getBlock: () => null,
-					getSettings: () => ( {
-						__experimentalDeviceType: 'Desktop',
-					} ),
-				} ) )
-			);
+			setupMocks( {
+				blocks: [ null ],
+			} );
 			setupViewport( { isMobileOrLarger: true } );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( false );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
+		} );
+
+		it( 'should return false when no blocks are returned', () => {
+			setupMocks( {
+				blocks: [],
+			} );
+			setupViewport( { isMobileOrLarger: true } );
+
+			const { result } = renderHook( () =>
+				useBlockVisibility( { clientIds: [ clientId ] } )
+			);
+
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( false );
 		} );
 
 		it( 'should default to Desktop deviceType when not provided', () => {
 			useSelect.mockImplementation( ( callback ) =>
 				callback( () => ( {
-					getBlock: () => ( {
-						attributes: {
-							metadata: {
-								blockVisibility: {
-									desktop: false,
+					getBlocksByClientId: () => [
+						{
+							attributes: {
+								metadata: {
+									blockVisibility: {
+										desktop: false,
+									},
 								},
 							},
 						},
-					} ),
+					],
 					getSettings: () => ( {} ), // No deviceType provided
 				} ) )
 			);
@@ -395,10 +411,10 @@ describe( 'useBlockVisibility', () => {
 			} );
 
 			const { result } = renderHook( () =>
-				useBlockVisibility( clientId )
+				useBlockVisibility( { clientIds: [ clientId ] } )
 			);
 
-			expect( result.current.isBlockCurrentlyHidden ).toBe( true );
+			expect( result.current.areBlocksCurrentlyHidden ).toBe( true );
 		} );
 	} );
 } );

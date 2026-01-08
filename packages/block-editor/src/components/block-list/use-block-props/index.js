@@ -138,7 +138,8 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 		  }
 		: {};
 
-	const { isBlockCurrentlyHidden } = useBlockVisibility( clientId );
+	const { areBlocksCurrentlyHidden: isBlockCurrentlyHidden } =
+		useBlockVisibility( { clientIds: [ clientId ] } );
 
 	// Ensures it warns only inside the `edit` implementation for the block.
 	if ( blockApiVersion < 2 && clientId === blockEditContext.clientId ) {

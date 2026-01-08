@@ -47,39 +47,45 @@ export default function useBlockVisibility( { clientIds } ) {
 
 	// Determine current viewport based on deviceType and/or viewport detection.
 	const currentViewport = useMemo( () => {
-		if ( deviceType === BLOCK_VISIBILITY_VIEWPORTS.mobile.value ) {
-			return BLOCK_VISIBILITY_VIEWPORTS.mobile.value;
+		if ( deviceType === BLOCK_VISIBILITY_VIEWPORTS.mobile.key ) {
+			return BLOCK_VISIBILITY_VIEWPORTS.mobile.key;
 		}
-		if ( deviceType === BLOCK_VISIBILITY_VIEWPORTS.tablet.value ) {
-			return BLOCK_VISIBILITY_VIEWPORTS.tablet.value;
+		if ( deviceType === BLOCK_VISIBILITY_VIEWPORTS.tablet.key ) {
+			return BLOCK_VISIBILITY_VIEWPORTS.tablet.key;
 		}
 		if ( ! isLargerThanMobile ) {
 			// Desktop: use actual viewport detection
 			// Mobile: viewport < 480px (matches block-visibility.php: max-width: 479px)
-			return BLOCK_VISIBILITY_VIEWPORTS.mobile.value;
+			return BLOCK_VISIBILITY_VIEWPORTS.mobile.key;
 		}
 		if ( isLargerThanMobile && ! isLargerThanTablet ) {
 			// Tablet: viewport >= 480px and < 782px (matches block-visibility.php: 480px-781px)
-			return BLOCK_VISIBILITY_VIEWPORTS.tablet.value;
+			return BLOCK_VISIBILITY_VIEWPORTS.tablet.key;
 		}
 		// Desktop: viewport >= 782px (matches block-visibility.php: min-width: 782px)
-		return BLOCK_VISIBILITY_VIEWPORTS.desktop.value;
+		return BLOCK_VISIBILITY_VIEWPORTS.desktop.key;
 	}, [ deviceType, isLargerThanMobile, isLargerThanTablet ] );
 
-	// Determine if all blocks are hidden.
+	/*
+	 * Determine if all blocks are hidden at the current viewport (or everywhere).
+	 * Typically, this would be a single block checked, but this is a more general approach to match the clientIds array arg.
+	 *
+	 * @return {boolean} `true` if all blocks are hidden at the current viewport (or everywhere), `false` otherwise.
+	 */
 	const areBlocksCurrentlyHidden = useMemo( () => {
 		// Hidden everywhere takes precedence.
 		const hiddenBlocksLength = blocks.filter(
 			( block ) =>
-				block && block.attributes?.metadata?.blockVisibility === false
+				block && block?.attributes?.metadata?.blockVisibility === false
 		).length;
+
 		if ( hiddenBlocksLength > 0 && hiddenBlocksLength === blocks.length ) {
 			return true;
 		}
 		if ( window.__experimentalHideBlocksBasedOnScreenSize ) {
 			const hiddenBlocksOnCurrentViewportLength = blocks.filter(
 				( block ) =>
-					block.attributes?.metadata?.blockVisibility?.[
+					block?.attributes?.metadata?.blockVisibility?.[
 						currentViewport
 					] === false
 			).length;
